@@ -1,15 +1,39 @@
 import streamlit as st
+import yfinance as yf
+import plotly.graph_objects as go
+import pandas as pd
 
-col1, col2, col3 = st.columns(3)
+# 📌 시가총액 상위 10개 기업의 티커 목록
+top_10_tickers = [
+    'AAPL', 'MSFT', 'AMZN', 'GOOGL', 'TSLA',
+    'BRK-B', 'NVDA', 'META', 'V', 'JNJ'
+]
 
-with col1:
-    st.header("A cat")
-    st.image("https://static.streamlit.io/examples/cat.jpg")
+# 📅 데이터 다운로드
+data = {}
+for ticker in top_10_tickers:
+    stock = yf.Ticker(ticker)
+    data[ticker] = stock.history(period="1y")['Close']
 
-with col2:
-    st.header("A dog")
-    st.image("https://static.streamlit.io/examples/dog.jpg")
+# 📈 Plotly를 사용한 시각화
+fig = go.Figure()
 
-with col3:
-    st.header("An owl")
-    st.image("https://static.streamlit.io/examples/owl.jpg")
+for ticker, prices in data.items():
+    fig.add_trace(go.Scatter(
+        x=prices.index,
+        y=prices,
+        mode='lines',
+        name=ticker,
+        line=dict(width=2)
+    ))
+
+fig.update_layout(
+    title="Global Top 10 Market Cap Stocks - Last 1 Year",
+    xaxis_title="Date",
+    yaxis_title="Closing Price (USD)",
+    template="plotly_dark",
+    hovermode="x unified"
+)
+
+# 📺 Streamlit에 시각화 표시
+st.plotly_chart(fig)
